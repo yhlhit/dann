@@ -12,8 +12,18 @@ plt.switch_backend('agg')
 
 import numpy as np
 import os, time
-from data import SynDig
+#from data import SynDig
 
+class ResizeImage():
+    def __init__(self,size):
+        if isinstance(size,int):
+            self.size = (int(size),int(size))
+        else:
+            self.size = size
+
+    def __call__(self,img):
+        th,tw = self.size
+        return img.resize((th,tw))
 
 def get_train_loader(dataset):
     """
@@ -68,25 +78,49 @@ def get_train_loader(dataset):
         data = torch.utils.data.ConcatDataset((data1, data2))
 
         dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
-    elif dataset == 'SynDig':
-        transform = transforms.Compose([
-            transforms.RandomCrop((28)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean= params.dataset_mean, std= params.dataset_std)
-        ])
+    #elif dataset == 'SynDig':
+    #    transform = transforms.Compose([
+    #        transforms.RandomCrop((28)),
+    #        transforms.ToTensor(),
+    #        transforms.Normalize(mean= params.dataset_mean, std= params.dataset_std)
+    #    ])
 
-        data = SynDig.SynDig(root= params.syndig_path, split= 'train', transform= transform, download= False)
+    #   data = SynDig.SynDig(root= params.syndig_path, split= 'train', transform= transform, download= False)
 
-        dataloader = DataLoader(dataset = data, batch_size= params.batch_size, shuffle= True)
+    #    dataloader = DataLoader(dataset = data, batch_size= params.batch_size, shuffle= True)
 
     elif dataset == 'amazon':
         transform = transforms.Compose([
-            transforms.RandomCrop((28)),
+            transforms.RandomCrop((224)),
             transforms.ToTensor(),
             transforms.Normalize(mean=params.dataset_mean, std=params.dataset_std)
         ])
 
         data = datasets.ImageFolder(params.amazon_path + '/train', transform=transform)
+
+        dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
+
+    elif dataset == 'art':
+        transform = transforms.Compose([
+            ResizeImage(256),
+            transforms.RandomCrop((224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])
+        ])
+
+        data = datasets.ImageFolder(params.art_path + '/train', transform=transform)
+
+        dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
+
+    elif dataset == 'clipart':
+        transform = transforms.Compose([
+            ResizeImage(256),
+            transforms.RandomCrop((224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+        data = datasets.ImageFolder(params.clipart_path + '/train', transform=transform)
 
         dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
 
@@ -147,20 +181,20 @@ def get_test_loader(dataset):
         data = datasets.SVHN(root= params.svhn_path, split= 'test', transform = transform, download= True)
 
         dataloader = DataLoader(dataset = data, batch_size= 1, shuffle= False)
-    elif dataset == 'SynDig':
-        transform = transforms.Compose([
-            transforms.CenterCrop((28)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=params.dataset_mean, std=params.dataset_std)
-        ])
-
-        data = SynDig.SynDig(root= params.syndig_path, split= 'test', transform= transform, download= False)
-
-        dataloader = DataLoader(dataset= data, batch_size= 1, shuffle= False)
+    #elif dataset == 'SynDig':
+    #    transform = transforms.Compose([
+    #        transforms.CenterCrop((28)),
+    #        transforms.ToTensor(),
+    #        transforms.Normalize(mean=params.dataset_mean, std=params.dataset_std)
+    #    ])
+    #
+    #    data = SynDig.SynDig(root= params.syndig_path, split= 'test', transform= transform, download= False)
+    #
+    #    dataloader = DataLoader(dataset= data, batch_size= 1, shuffle= False)
 
     elif dataset == 'dslr':
         transform = transforms.Compose([
-            transforms.RandomCrop((28)),
+            transforms.RandomCrop((224)),
             transforms.ToTensor(),
             transforms.Normalize(mean=params.dataset_mean, std=params.dataset_std)
         ])
@@ -169,7 +203,29 @@ def get_test_loader(dataset):
 
         dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
 
+    elif dataset == "art":
+        transform = transforms.Compose([
+            ResizeImage(256),
+            transforms.RandomCrop((224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])
+        ])
 
+        data = datasets.ImageFolder(params.art_path + '/test', transform=transform)
+
+        dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
+
+    elif dataset == "clipart":
+        transform = transforms.Compose([
+            ResizeImage(256),
+            transforms.RandomCrop((224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+        data = datasets.ImageFolder(params.clipart_path + '/test', transform=transform)
+
+        dataloader = DataLoader(dataset=data, batch_size=params.batch_size, shuffle=True)
     else:
         raise Exception('There is no dataset named {}'.format(str(dataset)))
 

@@ -21,7 +21,8 @@ from torch.autograd import Variable
 
 import time
 import os
-os.environ['CUDA_LAUNCH_BLOCKING']='1'
+#os.environ['CUDA_LAUNCH_BLOCKING']='1'
+#os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 
 def visualizePerformance(feature_extractor, class_classifier, domain_classifier, src_test_dataloader,
@@ -157,6 +158,14 @@ def main(args):
         class_classifier.cuda()
         domain_classifier.cuda()
 
+    #data parallel
+    if torch.cuda.device_count() >1:
+        feature_extractor = nn.DataParallel(feature_extractor)
+        class_classifier = nn.DataParallel(class_classifier)
+        domain_classifier = nn.DataParallel(domain_classifier)
+
+
+
     # init criterions
     class_criterion = nn.NLLLoss()
     domain_criterion = nn.NLLLoss()
@@ -184,9 +193,9 @@ def parse_arguments(argv):
     """Command line parse."""
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--source_domain', type= str, default= 'amazon', help= 'Choose source domain.')
+    parser.add_argument('--source_domain', type= str, default= 'art', help= 'Choose source domain.')
 
-    parser.add_argument('--target_domain', type= str, default= 'dslr', help = 'Choose target domain.')
+    parser.add_argument('--target_domain', type= str, default= 'clipart', help = 'Choose target domain.')
 
     parser.add_argument('--backbone', type=str, default='ResNet50', help='Choose conv net.')
 
